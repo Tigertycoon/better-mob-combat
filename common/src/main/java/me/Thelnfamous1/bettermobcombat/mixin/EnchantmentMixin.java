@@ -20,10 +20,12 @@ public class EnchantmentMixin {
     public EnchantmentMixin() {
     }
 
+    // require = 0: gracefully skip if getSlotItems no longer exists (e.g. NeoForge 1.21.1 overhauled enchantment API)
     @Inject(
         method = {"getSlotItems"},
         at = {@At("RETURN")},
-        cancellable = true
+        cancellable = true,
+        require = 0
     )
     private void post_getSlotItems(LivingEntity entity, CallbackInfoReturnable<Map<EquipmentSlot, ItemStack>> cir) {
         if (entity instanceof Mob mob) {

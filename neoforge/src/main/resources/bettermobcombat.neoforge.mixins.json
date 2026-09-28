@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "me.Thelnfamous1.bettermobcombat.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "compat.guardvillagers.GuardMeleeGoalMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

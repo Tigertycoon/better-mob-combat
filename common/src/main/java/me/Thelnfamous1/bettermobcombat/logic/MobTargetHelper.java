@@ -36,9 +36,8 @@ public class MobTargetHelper {
                     return TargetHelper.Relation.FRIENDLY;
                 } else if(BetterMobCombat.getServerConfig().mobs_check_for_same_entity_type && attacker.getType().equals(target.getType())){
                     return TargetHelper.Relation.FRIENDLY;
-                } else if(BetterMobCombat.getServerConfig().mobs_check_for_same_mob_type && !attacker.getMobType().equals(MobType.UNDEFINED)
-                        && target instanceof LivingEntity livingTarget && attacker.getMobType().equals(livingTarget.getMobType())){
-                    return TargetHelper.Relation.FRIENDLY;
+                // mobs_check_for_same_mob_type: MobType was removed in MC 1.21.1 (replaced by entity type tags).
+                // This check is intentionally disabled for the 1.21.1 migration.
                 } else {
                     TargetHelper.Relation relationToTarget = BetterMobCombat.getServerConfigHelper().getMobRelation(attacker.getType(), target.getType());
                     if (relationToTarget != null) {

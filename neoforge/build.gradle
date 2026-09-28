@@ -1,0 +1,71 @@
+plugins {
+    id 'multiloader-loader'
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    version = neoforge_version
+    // Automatically enable neoforge AccessTransformers if the file exists
+    def at = project(':common').file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
+    }
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
+    }
+    runs {
+        configureEach {
+            systemProperty('neoforge.enabledGameTestNamespaces', mod_id)
+            ideName = "NeoForge ${it.name.capitalize()} (${project.path})"
+        }
+        client {
+            client()
+        }
+        server {
+            server()
+        }
+    }
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+repositories {
+    maven {
+        name = 'KosmX'
+        url = 'https://maven.kosmx.dev/'
+    }
+    maven {
+        name = 'Shedaniel'
+        url = 'https://maven.shedaniel.me/'
+    }
+    maven {
+        name = 'Modrinth'
+        url = 'https://api.modrinth.com/maven'
+        content {
+            includeGroup 'maven.modrinth'
+        }
+    }
+}
+
+dependencies {
+    // BetterCombat (required)
+    implementation("maven.modrinth:better-combat:${better_combat_version}-neoforge")
+
+    // BetterCombat dependencies
+    implementation("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}") {
+        exclude(group: "net.fabricmc.fabric-api")
+    }
+    implementation("dev.kosmx.player-anim:player-animation-lib-forge:${player_anim_version}")
+
+    // MixinExtras (bundled by NeoForge, but declared explicitly for annotation processing)
+    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
+
+    // Guard Villagers (optional compat)
+    compileOnly("maven.modrinth:guard-villagers:${guard_villagers_version}")
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }

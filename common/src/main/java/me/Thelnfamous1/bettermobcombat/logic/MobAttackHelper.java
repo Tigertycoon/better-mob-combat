@@ -1,14 +1,20 @@
 package me.Thelnfamous1.bettermobcombat.logic;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import me.Thelnfamous1.bettermobcombat.BetterMobCombat;
 import me.Thelnfamous1.bettermobcombat.api.MobAttackStrength;
-import net.bettercombat.BetterCombat;
+import net.bettercombat.BetterCombatMod;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.ComboState;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.logic.WeaponRegistry;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ShieldItem;
 import org.jetbrains.annotations.Nullable;
@@ -22,7 +28,7 @@ public class MobAttackHelper {
     }
 
     public static float getDualWieldingAttackDamageMultiplier(LivingEntity mob, AttackHand hand) {
-        return isDualWielding(mob) ? (hand.isOffHand() ? BetterCombat.config.dual_wielding_off_hand_damage_multiplier : BetterCombat.config.dual_wielding_main_hand_damage_multiplier) : 1.0F;
+        return isDualWielding(mob) ? (hand.isOffHand() ? BetterCombatMod.config.dual_wielding_off_hand_damage_multiplier : BetterCombatMod.config.dual_wielding_main_hand_damage_multiplier) : 1.0F;
     }
 
     public static boolean shouldAttackWithOffHand(LivingEntity mob, int comboCount) {
@@ -47,7 +53,7 @@ public class MobAttackHelper {
     }
 
     public static float getAttackCooldownTicksCapped(Mob mob) {
-        return Math.max(((MobAttackStrength)mob).bettermobcombat$getCurrentItemAttackStrengthDelay(), (float)BetterCombat.config.attack_interval_cap);
+        return Math.max(((MobAttackStrength)mob).bettermobcombat$getCurrentItemAttackStrengthDelay(), (float)BetterCombatMod.config.attack_interval_cap);
     }
 
     @Nullable
@@ -169,13 +175,28 @@ public class MobAttackHelper {
         }
 
         if (remove != null) {
-            mob.getAttributes().removeAttributeModifiers(remove.getAttributeModifiers(EquipmentSlot.MAINHAND));
+            mob.getAttributes().removeAttributeModifiers(getMainhandAttributeMap(remove));
         }
 
         if (add != null) {
-            mob.getAttributes().addTransientAttributeModifiers(add.getAttributeModifiers(EquipmentSlot.MAINHAND));
+            mob.getAttributes().addTransientAttributeModifiers(getMainhandAttributeMap(add));
         }
+    }
 
+    /** MC 1.21.1: ItemStack.getAttributeModifiers(EquipmentSlot) was removed; use DataComponent API.
+     *  Using var to avoid a direct ItemAttributeModifiers import — the class package varies across
+     *  NeoForm versions and is not stable in the common compile classpath. */
+    private static Multimap<Holder<Attribute>, AttributeModifier> getMainhandAttributeMap(ItemStack stack) {
+        Multimap<Holder<Attribute>, AttributeModifier> map = HashMultimap.create();
+        var iamModifiers = stack.get(DataComponents.ATTRIBUTE_MODIFIERS);
+        if (iamModifiers != null) {
+            for (var entry : iamModifiers.modifiers()) {
+                if (entry.slot().test(EquipmentSlot.MAINHAND)) {
+                    map.put(entry.attribute(), entry.modifier());
+                }
+            }
+        }
+        return map;
     }
 
     public static double getTotalUpswingRate(AttackHand hand) {
@@ -184,7 +205,7 @@ public class MobAttackHelper {
     }
 
     public static double getTotalUpswingMultiplier() {
-        return Mth.clamp(BetterCombat.config.getUpswingMultiplier() + BetterMobCombat.getServerConfig().mob_additional_upswing_multiplier, 0.2D, 1.0D);
+        return Mth.clamp(BetterCombatMod.config.getUpswingMultiplier() + BetterMobCombat.getServerConfig().mob_additional_upswing_multiplier, 0.2D, 1.0D);
     }
 
     private record AttackSelection(WeaponAttributes.Attack attack, ComboState comboState) {

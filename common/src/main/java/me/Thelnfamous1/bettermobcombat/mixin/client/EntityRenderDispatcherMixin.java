@@ -1,24 +1,22 @@
 package me.Thelnfamous1.bettermobcombat.mixin.client;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import me.Thelnfamous1.bettermobcombat.logic.MobAttackHelper;
 import me.Thelnfamous1.bettermobcombat.logic.MobTargetFinder;
 import net.bettercombat.api.AttackHand;
 import net.bettercombat.api.WeaponAttributes;
-import net.bettercombat.client.BetterCombatClient;
+import net.bettercombat.client.BetterCombatClientMod;
 import net.bettercombat.client.collision.OrientedBoundingBox;
 import net.bettercombat.client.collision.TargetFinder;
 import net.bettercombat.logic.PlayerAttackProperties;
 import net.bettercombat.mixin.client.MinecraftClientAccessor;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -41,7 +39,7 @@ public class EntityRenderDispatcherMixin {
         Minecraft client = Minecraft.getInstance();
         if (((MinecraftClientAccessor)client).getEntityRenderDispatcher().shouldRenderHitBoxes()) {
             if (entity instanceof Mob mob) {
-                if (BetterCombatClient.config.isDebugOBBEnabled) {
+                if (BetterCombatClientMod.config.isDebugOBBEnabled) {
                     if (mob.getMainHandItem() != null) {
                         PlayerAttackProperties extendedMob = (PlayerAttackProperties)mob;
                         int comboCount = extendedMob.getComboCount();
@@ -63,69 +61,22 @@ public class EntityRenderDispatcherMixin {
         }
     }
 
+    // TODO: MC 1.21.x completely rewrote the immediate-mode rendering API (Tesselator/BufferBuilder removed;
+    //       VertexConsumer.vertex(Matrix4f,x,y,z) signature changed). The OBB debug visualisation below is
+    //       stubbed out for Phase 1. Re-enable when porting the rendering code to the new VertexBuffer/MeshData API.
+
     @Unique
     private void bettermobcombat$drawOutline(PoseStack matrixStack, OrientedBoundingBox obb, List<OrientedBoundingBox> otherObbs, boolean collides) {
-        RenderSystem.enableDepthTest();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuilder();
-        RenderSystem.disableBlend();
-        RenderSystem.lineWidth(1.0F);
-        bufferBuilder.begin(VertexFormat.Mode.DEBUG_LINE_STRIP, DefaultVertexFormat.POSITION_COLOR);
-        if (collides) {
-            this.bettermobcombat$outlineOBB(matrixStack, obb, bufferBuilder, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.5F);
-        } else {
-            this.bettermobcombat$outlineOBB(matrixStack, obb, bufferBuilder, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.5F);
-        }
-
-        this.bettermobcombat$look(matrixStack, obb, bufferBuilder, 0.5F);
-
-        for (OrientedBoundingBox otherObb : otherObbs) {
-            this.bettermobcombat$outlineOBB(matrixStack, otherObb, bufferBuilder, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.5F);
-        }
-
-        tessellator.end();
-        RenderSystem.lineWidth(1.0F);
-        RenderSystem.enableBlend();
+        // Stubbed — see TODO above.
     }
 
     @Unique
     private void bettermobcombat$outlineOBB(PoseStack matrixStack, OrientedBoundingBox box, VertexConsumer buffer, float red1, float green1, float blue1, float red2, float green2, float blue2, float alpha) {
-        Matrix4f matrix4f = matrixStack.last().pose();
-        buffer.vertex(matrix4f, (float)box.vertex1.x, (float)box.vertex1.y, (float)box.vertex1.z).color(0, 0, 0, 0).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex1.x, (float)box.vertex1.y, (float)box.vertex1.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex2.x, (float)box.vertex2.y, (float)box.vertex2.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex3.x, (float)box.vertex3.y, (float)box.vertex3.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex4.x, (float)box.vertex4.y, (float)box.vertex4.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex1.x, (float)box.vertex1.y, (float)box.vertex1.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex5.x, (float)box.vertex5.y, (float)box.vertex5.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex6.x, (float)box.vertex6.y, (float)box.vertex6.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex2.x, (float)box.vertex2.y, (float)box.vertex2.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex6.x, (float)box.vertex6.y, (float)box.vertex6.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex7.x, (float)box.vertex7.y, (float)box.vertex7.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex3.x, (float)box.vertex3.y, (float)box.vertex3.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex7.x, (float)box.vertex7.y, (float)box.vertex7.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex8.x, (float)box.vertex8.y, (float)box.vertex8.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex4.x, (float)box.vertex4.y, (float)box.vertex4.z).color(red1, green1, blue1, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex8.x, (float)box.vertex8.y, (float)box.vertex8.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex5.x, (float)box.vertex5.y, (float)box.vertex5.z).color(red2, green2, blue2, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.vertex5.x, (float)box.vertex5.y, (float)box.vertex5.z).color(0, 0, 0, 0).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0, 0, 0, 0).endVertex();
+        // Stubbed — see TODO above.
     }
 
     @Unique
     private void bettermobcombat$look(PoseStack matrixStack, OrientedBoundingBox box, VertexConsumer buffer, float alpha) {
-        Matrix4f matrix4f = matrixStack.last().pose();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 0.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(1.0F, 0.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.axisZ.x, (float)box.axisZ.y, (float)box.axisZ.z).color(1.0F, 0.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(1.0F, 0.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 1.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.axisY.x, (float)box.axisY.y, (float)box.axisY.z).color(0.0F, 1.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 1.0F, 0.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 0.0F, 1.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.axisX.x, (float)box.axisX.y, (float)box.axisX.z).color(0.0F, 0.0F, 1.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 0.0F, 1.0F, alpha).endVertex();
-        buffer.vertex(matrix4f, (float)box.center.x, (float)box.center.y, (float)box.center.z).color(0.0F, 0.0F, 0.0F, alpha).endVertex();
+        // Stubbed — see TODO above.
     }
 }

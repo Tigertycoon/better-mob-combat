@@ -4,7 +4,7 @@ import me.Thelnfamous1.bettermobcombat.api.MobAttackRangeExtensions;
 import net.bettercombat.Platform;
 import net.bettercombat.api.client.AttackRangeExtensions;
 import net.bettercombat.api.client.AttackRangeExtensions.Operation;
-import net.bettercombat.compatibility.PehkuiHelper;
+import net.bettercombat.client.compat.PehkuiHelper;
 
 public class BMCPehkuiHelper {
 

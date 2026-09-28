@@ -18,7 +18,7 @@ public class MobSoundHelper {
         if (sound != null) {
             try {
                 float pitch = sound.randomness() > 0.0F ? RNG.nextFloat(sound.pitch() - sound.randomness(), sound.pitch() + sound.randomness()) : sound.pitch();
-                SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(sound.id()));
+                SoundEvent soundEvent = BuiltInRegistries.SOUND_EVENT.get(ResourceLocation.parse(sound.id()));
                 float distance = soundEvent.getRange(sound.volume());
                 Services.PLATFORM.playMobAttackSound(world, entity.getId(), entity.getX(), entity.getY(), entity.getZ(), sound.id(), sound.volume(), pitch, RNG.nextLong(), distance, entity.level().dimension());
             } catch (Exception var8) {

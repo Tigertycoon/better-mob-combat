@@ -73,12 +73,8 @@ public class BMCServerConfig implements ConfigData {
             """)
     public LinkedHashMap<String, String> mob_relations = new LinkedHashMap<String, String>() {
         {
+            // Phase 1: GuardVillagers only (no Recruits)
             this.put("guardvillagers:guard", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
-            this.put("recruits:recruit", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
-            this.put("recruits:bowman", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
-            this.put("recruits:recruit_shieldman", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
-            this.put("recruits:nomad", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
-            this.put("recruits:horseman", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultVillagerAllyRelations)));
             this.put("minecraft:piglin", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultPiglinRelations)));
             this.put("minecraft:piglin_brute", encodeMobRelationMap(Util.make(new LinkedHashMap<>(), BMCServerConfig::addDefaultPiglinRelations)));
         }
@@ -100,14 +96,10 @@ public class BMCServerConfig implements ConfigData {
     }
 
     private static void addDefaultVillagerAllyRelations(LinkedHashMap<String, TargetHelper.Relation> map) {
+        // Phase 1: GuardVillagers only — Recruits entries omitted (Recruits not installed)
         map.put("guardvillagers:guard", TargetHelper.Relation.NEUTRAL);
         map.put("minecraft:villager", TargetHelper.Relation.NEUTRAL);
         map.put("minecraft:iron_golem", TargetHelper.Relation.NEUTRAL);
-        map.put("recruits:recruit", TargetHelper.Relation.NEUTRAL);
-        map.put("recruits:bowman", TargetHelper.Relation.NEUTRAL);
-        map.put("recruits:recruit_shieldman", TargetHelper.Relation.NEUTRAL);
-        map.put("recruits:nomad", TargetHelper.Relation.NEUTRAL);
-        map.put("recruits:horseman", TargetHelper.Relation.NEUTRAL);
     }
 
     private static void addDefaultPiglinRelations(LinkedHashMap<String, TargetHelper.Relation> map) {

@@ -1,63 +1,54 @@
 plugins {
-    id 'idea'
-    id 'java'
-    id 'maven-publish'
-    id 'org.spongepowered.gradle.vanilla'
-}
-base {
-    archivesName = "${mod_id}-common-${minecraft_version}"
-}
-minecraft {
-    version(minecraft_version)
-    if(file("src/main/resources/${mod_id}.accesswidener").exists()){
-        accessWideners(file("src/main/resources/${mod_id}.accesswidener"))
-    }
+    id 'multiloader-common'
+    id 'net.neoforged.moddev'
 }
 
-repositories {
-    maven { url 'https://maven.kosmx.dev/' }
-    maven { url "https://maven.shedaniel.me/" }
-    maven { url "https://maven.terraformersmc.com/releases/" }
-    maven { url = "https://api.modrinth.com/maven" }
-    flatDir {
-        dirs 'lib'
+neoForge {
+    // Use NeoForm to get Minecraft classes without a full NeoForge installation
+    neoFormVersion = neo_form_version
+    // Automatically enable AccessTransformers if the file exists
+    def at = file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.from(at.absolutePath)
     }
-    maven {
-        name = 'GeckoLib'
-        url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
-        content {
-            includeGroupByRegex("software\\.bernie.*")
-            includeGroup("com.eliotlash.mclib")
-        }
+    parchment {
+        minecraftVersion = parchment_minecraft
+        mappingsVersion = parchment_version
     }
 }
 
 dependencies {
-    compileOnly group:'org.spongepowered', name:'mixin', version:'0.8.5'
-    implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
-    implementation("maven.modrinth:better-combat:${project.better_combat_version}-forge")
-    // Better Combat Dependencies
-    implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:${project.mixin_extras_version}"))
-    implementation("me.shedaniel.cloth:cloth-config-forge:${project.cloth_config_version}") {
+    // Mixin support
+    compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
+    // MixinExtras (fabric and neoforge both bundle it, so compileOnly is safe in common)
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:${mixin_extras_version}"))
+
+    // BetterCombat API — compileOnly so common can reference it;
+    // the actual runtime dep is declared in each loader subproject.
+    compileOnly("maven.modrinth:better-combat:${better_combat_version}-neoforge")
+
+    // BetterCombat dependencies
+    compileOnly("me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    implementation("dev.kosmx.player-anim:player-animation-lib-forge:${project.player_anim_version}")
+    compileOnly("dev.kosmx.player-anim:player-animation-lib-forge:${player_anim_version}")
 
-    compileOnly "software.bernie.geckolib:geckolib-forge-${minecraft_version}:${geckolib_version}"
-    compileOnly("com.eliotlash.mclib:mclib:20")
-    implementation "maven.modrinth:minecraft-comes-alive-reborn:${mcar_version}"
+    // Guard Villagers (compileOnly for compat mixins)
+    compileOnly("maven.modrinth:guard-villagers:${guard_villagers_version}")
 }
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId base.archivesName.get()
-            from components.java
-        }
+configurations {
+    commonJava {
+        canBeResolved = false
+        canBeConsumed = true
     }
-    repositories {
-        maven {
-            url "file://" + System.getenv("local_maven")
-        }
+    commonResources {
+        canBeResolved = false
+        canBeConsumed = true
     }
+}
+
+artifacts {
+    commonJava sourceSets.main.java.sourceDirectories.singleFile
+    commonResources sourceSets.main.resources.sourceDirectories.singleFile
 }

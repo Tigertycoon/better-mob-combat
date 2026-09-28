@@ -1,7 +1,7 @@
 package me.Thelnfamous1.bettermobcombat;
 
 import net.bettercombat.api.client.BetterCombatClientEvents;
-import net.bettercombat.client.BetterCombatClient;
+import net.bettercombat.client.BetterCombatClientMod;
 import net.bettercombat.config.ClientConfig;
 import net.bettercombat.logic.PlayerAttackHelper;
 
@@ -12,6 +12,6 @@ public class BetterMobCombatClient {
     }
 
     public static ClientConfig getBetterCombatClientConfig(){
-        return BetterCombatClient.config;
+        return BetterCombatClientMod.config;
     }
 }

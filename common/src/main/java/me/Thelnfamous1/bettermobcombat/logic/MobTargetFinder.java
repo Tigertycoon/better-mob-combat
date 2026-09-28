@@ -1,7 +1,7 @@
 package me.Thelnfamous1.bettermobcombat.logic;
 
 import me.Thelnfamous1.bettermobcombat.api.MobAttackRangeExtensions;
-import net.bettercombat.BetterCombat;
+import net.bettercombat.BetterCombatMod;
 import net.bettercombat.api.WeaponAttributes;
 import net.bettercombat.api.client.AttackRangeExtensions;
 import net.bettercombat.client.collision.CollisionHelper;
@@ -65,7 +65,8 @@ public class MobTargetFinder {
         entities = collisionFilter.filter(entities, mob);
         RadialFilter radialFilter = new RadialFilter(origin, obb.axisZ, attackRange, attack.angle());
         entities = radialFilter.filter(entities, mob);
-        return new TargetFinder.TargetResult(entities, obb);
+        // BC 1.21.1: TargetResult now takes (Entity cursorTarget, List<Entity>, OrientedBoundingBox)
+        return new TargetFinder.TargetResult(intendedTarget, entities, obb);
     }
 
     public static double applyAttackRangeModifiers(LivingEntity mob, double attackRange) {
@@ -93,7 +94,7 @@ public class MobTargetFinder {
     }
 
     public static List<Entity> getInitialTargets(LivingEntity mob, @Nullable Entity intendedTarget, double attackRange) {
-        AABB box = mob.getBoundingBox().inflate(attackRange * (double)BetterCombat.config.target_search_range_multiplier + 1.0);
+        AABB box = mob.getBoundingBox().inflate(attackRange * (double)BetterCombatMod.config.target_search_range_multiplier + 1.0);
         List<Entity> detectedEntities = mob.level().getEntities(mob, box, (entity) -> !entity.isSpectator() && entity.isPickable());
         List<Entity> targetableEntities = detectedEntities
                 .stream()
@@ -144,7 +145,7 @@ public class MobTargetFinder {
             Vec3 positionVector = target.position().add(0.0, target.getBbHeight() / 2.0F, 0.0).subtract(this.origin);
             return distanceVector.length() <= this.attackRange
                     && (this.attackAngle == 0.0 || CollisionHelper.angleBetween(positionVector, this.orientation) <= maxAngleDif || CollisionHelper.angleBetween(distanceVector, this.orientation) <= maxAngleDif)
-                    && (BetterCombat.config.allow_attacking_thru_walls || rayContainsNoObstacle(this.origin, this.origin.add(distanceVector), mob) || rayContainsNoObstacle(this.origin, this.origin.add(positionVector), mob));
+                    && (BetterCombatMod.config.allow_attacking_thru_walls || rayContainsNoObstacle(this.origin, this.origin.add(distanceVector), mob) || rayContainsNoObstacle(this.origin, this.origin.add(positionVector), mob));
         }
 
         private static boolean rayContainsNoObstacle(Vec3 start, Vec3 end, LivingEntity mob) {
